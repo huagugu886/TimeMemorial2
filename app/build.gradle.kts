@@ -2,7 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.ksp)
+    
+ id("kotlin-kapt")
 }
 
 android {
@@ -39,6 +40,7 @@ android {
     buildFeatures {
         compose = true
     }
+ id("kotlin-kapt")
 }
 
 // Skip AAR metadata check (android-37 SDK not yet available on CI runners)
@@ -46,6 +48,7 @@ tasks.configureEach {
     if (name.contains("AarMetadata")) {
         enabled = false
     }
+ id("kotlin-kapt")
 }
 
 dependencies {
@@ -70,4 +73,5 @@ dependencies {
     implementation(libs.miuix)
 
     debugImplementation(libs.androidx.ui.tooling)
+ id("kotlin-kapt")
 }
