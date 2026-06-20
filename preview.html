@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>TimeMemorial2 - Miuix Style</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --c-bg: #F7F7F7;
+  --c-surface: #FFFFFF;
+  --c-surface-container: #F0F0F0;
+  --c-on-background: #1A1A1A;
+  --c-on-surface-container: #1A1A1A;
+  --c-on-surface-variant-summary: #8E8E93;
+  --c-secondary-variant: #2563EB;
+  --c-on-secondary-variant: #FFFFFF;
+  --c-fab-bg: #60A5FA;
+  --c-fab-on: #FFFFFF;
+  --c-divider-line: rgba(0,0,0,0.08);
+  --c-disabled: #C8C8CC;
+  --c-love: #FF2D78;
+  --c-work: #005AFF;
+  --c-life: #00B578;
+  --c-study: #FF8F00;
+  --c-festival: #FF6A00;
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body {
+  font-family: 'Inter', -apple-system, "PingFang SC", sans-serif;
+  background: var(--c-bg); max-width:430px; margin:0 auto;
+  min-height:100vh; position:relative; overflow-x:hidden;
+  color: var(--c-on-background); -webkit-font-smoothing:antialiased;
+}
+.page { display:none; padding-bottom:150px; }
+.page.active { display:block; }
+.page-header { padding:12px 22px 16px; }
+.page-header h1 { font-size:34px; font-weight:700; letter-spacing:-0.5px; }
+
+/* Card */
+.miuix-card { background:var(--c-surface-container); border-radius:20px; margin:0 22px 10px; overflow:hidden; box-shadow:0 0.5px 2px rgba(0,0,0,0.04); }
+.stats-row { display:flex; gap:10px; padding:0 22px; margin-bottom:16px; }
+.stat-card { flex:1; background:var(--c-surface-container); border-radius:20px; padding:16px 18px; }
+.stat-label { font-size:12px; color:var(--c-on-surface-variant-summary); margin-bottom:4px; font-weight:500; }
+.stat-value { font-size:26px; font-weight:700; letter-spacing:-0.5px; }
+
+/* Chips */
+.cat-row { display:flex; gap:8px; padding:0 22px 16px; overflow-x:auto; scrollbar-width:none; }
+.cat-row::-webkit-scrollbar { display:none; }
+.cat-chip { flex-shrink:0; padding:8px 18px; border-radius:20px; font-size:14px; font-weight:500; background:var(--c-surface-container); color:var(--c-on-surface-variant-summary); border:none; cursor:pointer; transition:all 0.2s; }
+.cat-chip.active { color:#FFF; }
+.cat-chip.active[data-c="all"] { background:var(--c-on-background); }
+.cat-chip.active[data-c="love"] { background:var(--c-love); }
+.cat-chip.active[data-c="work"] { background:var(--c-work); }
+.cat-chip.active[data-c="life"] { background:var(--c-life); }
+.cat-chip.active[data-c="study"] { background:var(--c-study); }
+.cat-chip.active[data-c="festival"] { background:var(--c-festival); }
+
+/* Memorial items */
+.mem-item { display:flex; align-items:center; min-height:68px; padding:14px 18px; cursor:pointer; transition:background 0.15s; }
+.mem-item:active { background:rgba(0,0,0,0.03); }
+.mem-item + .mem-item { border-top:0.5px solid var(--c-divider-line); }
+.mem-icon { width:36px; height:36px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; margin-right:14px; }
+.mem-center { flex:1; min-width:0; }
+.mem-title { font-size:16px; font-weight:500; color:var(--c-on-background); line-height:1.3; }
+.mem-sub { font-size:13px; color:var(--c-on-surface-variant-summary); margin-top:3px; }
+.mem-end { flex-shrink:0; margin-left:12px; text-align:right; }
+.mem-days { font-size:28px; font-weight:700; letter-spacing:-0.5px; line-height:1; }
+.mem-unit { font-size:11px; color:var(--c-on-surface-variant-summary); margin-top:2px; font-weight:500; }
+
+/* Calendar */
+.cal-nav { display:flex; align-items:center; justify-content:space-between; padding:4px 22px 20px; }
+.cal-nav-btn { width:36px; height:36px; border-radius:12px; background:var(--c-surface-container); border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--c-on-surface-variant-summary); }
+.cal-month { font-size:17px; font-weight:600; }
+.cal-weekdays { display:grid; grid-template-columns:repeat(7,1fr); padding:0 22px; margin-bottom:4px; }
+.cal-weekdays span { text-align:center; font-size:13px; color:var(--c-on-surface-variant-summary); font-weight:500; padding:8px 0; }
+.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); padding:0 22px; gap:2px; }
+.cal-day { text-align:center; padding:10px 0; font-size:15px; border-radius:12px; cursor:pointer; position:relative; }
+.cal-day.empty { cursor:default; }
+.cal-day.today { background:var(--c-on-background); color:white; font-weight:600; }
+.cal-day.has-ev::after { content:''; position:absolute; bottom:5px; left:50%; transform:translateX(-50%); width:4px; height:4px; border-radius:50%; }
+.cal-section { padding:24px 22px 0; }
+.cal-section-title { font-size:15px; font-weight:600; color:var(--c-secondary-variant); margin-bottom:12px; }
+.cal-ev-item { display:flex; align-items:center; gap:10px; padding:14px 0; border-bottom:0.5px solid var(--c-divider-line); }
+.cal-ev-item:last-child { border-bottom:none; }
+.cal-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.cal-ev-text { font-size:15px; flex:1; }
+.cal-ev-date { font-size:13px; color:var(--c-on-surface-variant-summary); }
+
+/* Settings */
+.set-group { padding:0 22px; margin-bottom:24px; }
+.set-group-label { font-size:13px; color:var(--c-on-surface-variant-summary); font-weight:500; padding:0 4px 10px; }
+.set-card { background:var(--c-surface-container); border-radius:20px; overflow:hidden; }
+.set-item { display:flex; align-items:center; justify-content:space-between; padding:0 18px; min-height:56px; cursor:pointer; }
+.set-item + .set-item { border-top:0.5px solid var(--c-divider-line); }
+.s-title { font-size:16px; font-weight:500; }
+.s-sub { font-size:13px; color:var(--c-on-surface-variant-summary); margin-top:2px; }
+.s-arrow { color:var(--c-disabled); font-size:16px; }
+.miuix-switch { width:51px; height:31px; border-radius:16px; background:#E9E9EA; position:relative; cursor:pointer; flex-shrink:0; transition:background 0.25s; }
+.miuix-switch.on { background:var(--c-secondary-variant); }
+.miuix-switch::after { content:''; position:absolute; top:2px; left:2px; width:27px; height:27px; border-radius:50%; background:white; box-shadow:0 1px 3px rgba(0,0,0,0.12); transition:transform 0.25s cubic-bezier(0.3,0.7,0,1.2); }
+.miuix-switch.on::after { transform:translateX(20px); }
+
+/* ===== Miuix FloatingNavigationBar - 真正的穿透模糊 ===== */
+.miuix-float-nav {
+  position:fixed;
+  bottom: 20px;
+  left:50%; transform:translateX(-50%);
+  width: auto;
+  max-width: none;
+  padding: 0;
+  min-width: 192px;
+  max-width: 220px;
+  /* 更通透的半透明背景 */
+  background: rgba(245, 245, 247, 0.22);
+  backdrop-filter: blur(72px) saturate(250%);
+  -webkit-backdrop-filter: blur(72px) saturate(250%);
+  border-radius: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 20px;
+  gap: 16px;
+  box-shadow:
+    0 1px 16px rgba(0,0,0,0.06),
+    inset 0 0.5px 0 rgba(255,255,255,0.9);
+  z-index:100;
+  border: 0.5px solid rgba(255,255,255,0.35);
+}
+.fn-item {
+  display:flex; align-items:center; justify-content:center;
+  padding:8px;
+  border-radius:12px;
+  cursor:pointer; transition:all 0.15s;
+  -webkit-user-select:none;
+}
+.fn-item:active { transform:scale(0.88); opacity:0.6; }
+.fn-item.active { background:transparent; }
+.fn-item svg {
+  width:24px; height:24px;
+  color: var(--c-on-surface-container);
+  opacity:0.4;
+  transition:opacity 0.15s;
+}
+.fn-item.active svg { opacity:1; }
+
+/* FAB */
+.miuix-fab { position:fixed; bottom:90px; right:24px; left:auto; transform:none; width:52px; height:52px; background:var(--c-fab-bg); color:var(--c-fab-on); border-radius:16px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(96,165,250,0.35); cursor:pointer; z-index:99; transition:transform 0.12s, box-shadow 0.12s; }
+.miuix-fab:active { transform:scale(0.92); box-shadow:0 2px 8px rgba(96,165,250,0.2); }
+.miuix-fab svg { width:24px; height:24px; }
+
+/* Sheet */
+.sheet-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:200; }
+.sheet-overlay.show { display:block; }
+.bottom-sheet { position:fixed; bottom:0; left:50%; transform:translateX(-50%) translateY(100%); width:100%; max-width:430px; background:var(--c-surface); border-radius:24px 24px 0 0; padding:12px 26px 44px; z-index:201; transition:transform 0.35s cubic-bezier(0.32,0.72,0,1); }
+.bottom-sheet.show { transform:translateX(-50%) translateY(0); }
+.sheet-handle { width:40px; height:4px; border-radius:2px; background:var(--c-disabled); margin:0 auto 18px; }
+.sheet-title { font-size:20px; font-weight:700; margin-bottom:22px; }
+.sheet-label { font-size:14px; color:var(--c-on-surface-variant-summary); font-weight:500; margin-bottom:8px; }
+.sheet-input { width:100%; border:none; background:var(--c-bg); border-radius:14px; padding:14px 16px; font-size:16px; outline:none; margin-bottom:14px; font-family:inherit; color:var(--c-on-background); transition:box-shadow 0.2s; }
+.sheet-input:focus { box-shadow:0 0 0 2px rgba(0,90,255,0.2); }
+.sheet-input::placeholder { color:var(--c-disabled); }
+.sheet-cats { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+.sheet-cat { padding:8px 16px; border-radius:18px; font-size:14px; font-weight:500; border:1.5px solid var(--c-divider-line); background:transparent; cursor:pointer; color:var(--c-on-surface-variant-summary); transition:all 0.2s; }
+.sheet-cat.active { border-color:var(--c-secondary-variant); color:var(--c-secondary-variant); background:rgba(0,90,255,0.06); }
+.sheet-btn { width:100%; height:50px; background:var(--c-fab-bg); color:var(--c-fab-on); border:none; border-radius:14px; font-size:16px; font-weight:600; font-family:inherit; cursor:pointer; margin-top:8px; }
+.sheet-btn:active { opacity:0.85; }
+</style>
+</head>
+<body>
+
+<div class="page active" id="p-home">
+  <div class="page-header"><h1>纪念日</h1></div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-label">全部纪念日</div><div class="stat-value">5</div></div>
+    <div class="stat-card"><div class="stat-label">即将到来</div><div class="stat-value">2</div></div>
+  </div>
+  <div class="cat-row" id="home-cats">
+    <button class="cat-chip active" data-c="all">全部</button>
+    <button class="cat-chip" data-c="love">爱情</button>
+    <button class="cat-chip" data-c="work">工作</button>
+    <button class="cat-chip" data-c="life">生活</button>
+    <button class="cat-chip" data-c="study">学习</button>
+    <button class="cat-chip" data-c="festival">节日</button>
+  </div>
+  <div class="miuix-card" id="mem-card"></div>
+</div>
+
+<div class="page" id="p-cal">
+  <div class="page-header"><h1>日历</h1></div>
+  <div class="cal-nav">
+    <button class="cal-nav-btn" onclick="chM(-1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <span class="cal-month" id="cal-lbl">2026年6月</span>
+    <button class="cal-nav-btn" onclick="chM(1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg></button>
+  </div>
+  <div class="cal-weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+  <div class="cal-grid" id="cal-grid"></div>
+  <div class="cal-section"><div class="cal-section-title">本月纪念日</div><div id="cal-evs"></div></div>
+</div>
+
+<div class="page" id="p-set">
+  <div class="page-header"><h1>设置</h1></div>
+  <div class="set-group">
+    <div class="set-group-label">通用</div>
+    <div class="set-card">
+      <div class="set-item"><div><div class="s-title">纪念日提醒</div></div><div class="miuix-switch on" onclick="this.classList.toggle('on')"></div></div>
+      <div class="set-item"><div><div class="s-title">提前提醒天数</div><div class="s-sub">提前 3 天提醒</div></div><div class="s-arrow">›</div></div>
+      <div class="set-item"><div><div class="s-title">深色模式</div><div class="s-sub">跟随系统</div></div><div class="s-arrow">›</div></div>
+    </div>
+  </div>
+  <div class="set-group">
+    <div class="set-group-label">数据</div>
+    <div class="set-card">
+      <div class="set-item"><div><div class="s-title">导出数据</div></div><div class="s-arrow">›</div></div>
+      <div class="set-item"><div><div class="s-title">导入数据</div></div><div class="s-arrow">›</div></div>
+    </div>
+  </div>
+  <div class="set-group">
+    <div class="set-group-label">关于</div>
+    <div class="set-card">
+      <div class="set-item"><div><div class="s-title">TimeMemorial2</div><div class="s-sub">版本 1.0.0</div></div><div class="s-arrow">›</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="miuix-fab" onclick="showSheet()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div>
+
+<!-- Miuix FloatingNavigationBar: 纯图标 + 穿透模糊 -->
+<div class="miuix-float-nav">
+  <div class="fn-item active" onclick="sw('home',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+  </div>
+  <div class="fn-item" onclick="sw('cal',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+  </div>
+  <div class="fn-item" onclick="sw('set',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+  </div>
+</div>
+
+<div class="sheet-overlay" id="ov" onclick="hide()"></div>
+<div class="bottom-sheet" id="sh">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">新建纪念日</div>
+  <div class="sheet-label">名称</div>
+  <input class="sheet-input" id="in-t" placeholder="例如：在一起纪念日">
+  <div class="sheet-label">日期</div>
+  <input class="sheet-input" id="in-d" type="date" value="2026-06-20">
+  <div class="sheet-label">分类</div>
+  <div class="sheet-cats" id="in-cats">
+    <button class="sheet-cat active">爱情</button>
+    <button class="sheet-cat">工作</button>
+    <button class="sheet-cat">生活</button>
+    <button class="sheet-cat">学习</button>
+    <button class="sheet-cat">节日</button>
+  </div>
+  <div class="sheet-label">备注（可选）</div>
+  <input class="sheet-input" id="in-n" placeholder="添加备注">
+  <button class="sheet-btn" onclick="add()">创建纪念日</button>
+</div>
+
+<script>
+const D=[
+  {t:'和小美的纪念日',d:'2024-02-14',c:'love',n:'情人节在一起的'},
+  {t:'入职纪念日',d:'2023-07-01',c:'work',n:''},
+  {t:'生日',d:'2026-08-15',c:'life',n:''},
+  {t:'考研上岸',d:'2025-04-01',c:'study',n:''},
+  {t:'春节',d:'2027-02-06',c:'festival',n:''},
+];
+const CC={love:'var(--c-love)',work:'var(--c-work)',life:'var(--c-life)',study:'var(--c-study)',festival:'var(--c-festival)'};
+const CI={love:'❤️',work:'💼',life:'🎂',study:'📚',festival:'🧧'};
+const dB=s=>Math.ceil((new Date(s)-new Date())/864e5);
+const fD=s=>{const d=new Date(s);return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;};
+
+function render(f){
+  let data=f?D.filter(m=>m.c===f):[...D];
+  data.sort((a,b)=>new Date(a.d)-new Date(b.d));
+  document.getElementById('mem-card').innerHTML=data.map(m=>{
+    const dd=dB(m.d),past=dd<0;
+    return `<div class="mem-item">
+      <div class="mem-icon" style="background:${CC[m.c]}12;color:${CC[m.c]}">${CI[m.c]}</div>
+      <div class="mem-center"><div class="mem-title">${m.t}</div><div class="mem-sub">${fD(m.d)}${m.n?' · '+m.n:''}</div></div>
+      <div class="mem-end"><div class="mem-days" style="color:${CC[m.c]}">${Math.abs(dd)}</div><div class="mem-unit">${past?'已过':'剩余'}天</div></div>
+    </div>`;
+  }).join('');
+}
+document.querySelectorAll('#home-cats .cat-chip').forEach(c=>{c.addEventListener('click',function(){document.querySelectorAll('#home-cats .cat-chip').forEach(x=>x.classList.remove('active'));this.classList.add('active');render(this.dataset.c==='all'?null:this.dataset.c);});});
+function sw(id,el){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.fn-item').forEach(n=>n.classList.remove('active'));document.getElementById('p-'+id).classList.add('active');el.classList.add('active');}
+function showSheet(){document.getElementById('ov').classList.add('show');document.getElementById('sh').classList.add('show');}
+function hide(){document.getElementById('ov').classList.remove('show');document.getElementById('sh').classList.remove('show');}
+document.querySelectorAll('#in-cats .sheet-cat').forEach(c=>{c.addEventListener('click',function(){document.querySelectorAll('#in-cats .sheet-cat').forEach(x=>x.classList.remove('active'));this.classList.add('active');});});
+function add(){const t=document.getElementById('in-t').value.trim(),d=document.getElementById('in-d').value,n=document.getElementById('in-n').value.trim();const ce=document.querySelector('#in-cats .sheet-cat.active');const cm={'爱情':'love','工作':'work','生活':'life','学习':'study','节日':'festival'};if(t&&d){D.push({t,d,c:cm[ce?.textContent]||'life',n});render();hide();document.getElementById('in-t').value='';document.getElementById('in-n').value='';}}
+let CY=2026,CM=5;
+function rCal(){
+  document.getElementById('cal-lbl').textContent=`${CY}年${CM+1}月`;
+  const fd=new Date(CY,CM,1).getDay(),dim=new Date(CY,CM+1,0).getDate(),now=new Date();
+  const eds=new Set();D.forEach(m=>{const d=new Date(m.d);if(d.getFullYear()===CY&&d.getMonth()===CM)eds.add(d.getDate());});
+  let h='';for(let i=0;i<fd;i++)h+='<div class="cal-day empty"></div>';
+  for(let d=1;d<=dim;d++){const today=d===now.getDate()&&CM===now.getMonth()&&CY===now.getFullYear();const has=eds.has(d)&&!today;let cls='cal-day';if(today)cls+=' today';if(has)cls+=' has-ev';h+=`<div class="${cls}">${d}</div>`;}
+  document.getElementById('cal-grid').innerHTML=h;
+  document.querySelectorAll('.cal-day.has-ev').forEach(el=>{const day=parseInt(el.textContent);const m=D.find(x=>new Date(x.d).getDate()===day&&new Date(x.d).getMonth()===CM);if(m)el.style.setProperty('background',CC[m.c]+'12');});
+  const me=D.filter(m=>{const d=new Date(m.d);return d.getFullYear()===CY&&d.getMonth()===CM;});
+  document.getElementById('cal-evs').innerHTML=me.length===0?'<div style="padding:12px 0;color:var(--c-on-surface-variant-summary);font-size:14px;">本月暂无纪念日</div>':me.map(m=>`<div class="cal-ev-item"><div class="cal-dot" style="background:${CC[m.c]}"></div><span class="cal-ev-text">${m.t}</span><span class="cal-ev-date">${m.d.split('-')[1]}月${m.d.split('-')[2]}日</span></div>`).join('');
+}
+function chM(d){CM+=d;if(CM>11){CM=0;CY++;}if(CM<0){CM=11;CY--;}rCal();}
+render();rCal();
+</script>
+</body>
+</html>
