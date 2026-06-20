@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.huagugu.timememorial2"
-    compileSdk = 36
+    compileSdkPreview = "Baklava"
 
     defaultConfig {
         applicationId = "com.huagugu.timememorial2"
