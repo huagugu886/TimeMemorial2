@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -58,7 +59,7 @@ fun MainApp(viewModel: MemorialViewModel = viewModel()) {
         Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 24.dp, bottom = 90.dp)
+                .padding(end = 24.dp, bottom = 100.dp)
                 .size(52.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .background(FabBg)
@@ -98,11 +99,12 @@ private fun FloatingNavBar(
 
     Row(
         modifier = modifier
-            .padding(bottom = 20.dp)
+            .navigationBarsPadding()
+            .padding(bottom = 16.dp)
             .clip(RoundedCornerShape(28.dp))
             .background(Color(0xF2F5F5F7))
-            .padding(horizontal = 20.dp, vertical = 5.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
+            .padding(horizontal = 24.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         items.forEach { item ->
