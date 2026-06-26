@@ -75,6 +75,7 @@ dependencies {
     ksp(libs.androidx.room.compiler)
 
     implementation(libs.miuix)
+    implementation(project(":miuix-blur"))
 
     debugImplementation(libs.androidx.ui.tooling)
 }

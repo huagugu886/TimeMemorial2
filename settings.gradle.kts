@@ -20,3 +20,9 @@ dependencyResolutionManagement {
 }
 rootProject.name = "TimeMemorial2"
 include(":app")
+
+// Local MIUIX blur modules
+include(":miuix-shader")
+project(":miuix-shader").projectDir = file("_miuix/miuix-shader")
+include(":miuix-blur")
+project(":miuix-blur").projectDir = file("_miuix/miuix-blur")

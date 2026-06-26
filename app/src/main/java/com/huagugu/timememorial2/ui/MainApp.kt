@@ -39,6 +39,9 @@ import com.huagugu.timememorial2.ui.theme.FabOn
 import com.huagugu.timememorial2.ui.theme.OnBackground
 import com.huagugu.timememorial2.ui.theme.OnSurfaceVariant
 import com.huagugu.timememorial2.viewmodel.MemorialViewModel
+import top.yukonga.miuix.kmp.blur.drawBackdrop
+import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
+import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.Text
 
@@ -46,6 +49,8 @@ import top.yukonga.miuix.kmp.basic.Text
 fun MainApp(viewModel: MemorialViewModel = viewModel()) {
     var currentTab by remember { mutableIntStateOf(0) }
     var showAddSheet by remember { mutableStateOf(false) }
+
+    val backdrop = rememberLayerBackdrop()
 
     Box(modifier = Modifier.fillMaxSize().background(Color(0xFFF7F7F7))) {
         when (currentTab) {
@@ -68,9 +73,11 @@ fun MainApp(viewModel: MemorialViewModel = viewModel()) {
             Text("+", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = FabOn)
         }
 
-        // Bottom nav - semi-transparent
+        // Bottom nav - MIUIX backdrop blur
         FloatingNavBar(
-            modifier = Modifier.align(Alignment.BottomCenter),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .layerBackdrop(backdrop),
             currentTab = currentTab,
             onTabClick = { currentTab = it }
         )
