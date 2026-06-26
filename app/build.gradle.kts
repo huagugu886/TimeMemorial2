@@ -77,6 +77,7 @@ dependencies {
     implementation(libs.miuix)
     implementation(libs.miuix.blur)
     implementation(libs.miuix.blur)
+    implementation(libs.miuix.blur)
 
     debugImplementation(libs.androidx.ui.tooling)
 }
