@@ -43,8 +43,10 @@ jobs:
       - name: Build Release APK
         run: gradle assembleRelease
 
+      - name: List APK outputs
+        run: find app/build/outputs/apk -type f -name "*.apk"
+
       - name: Create GitHub Release
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.0.${{ github.run_number }}
@@ -52,6 +54,5 @@ jobs:
           body: "纪念日 v1.0.${{ github.run_number }} 自动构建"
           files: app/build/outputs/apk/release/*.apk
           prerelease: false
-          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
