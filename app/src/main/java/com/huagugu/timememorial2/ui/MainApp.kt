@@ -1,6 +1,7 @@
 package com.huagugu.timememorial2.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -25,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -101,8 +103,19 @@ private fun FloatingNavBar(
         modifier = modifier
             .navigationBarsPadding()
             .padding(bottom = 16.dp)
+            .shadow(
+                elevation = 12.dp,
+                shape = RoundedCornerShape(28.dp),
+                ambientColor = Color.Black.copy(alpha = 0.06f),
+                spotColor = Color.Black.copy(alpha = 0.08f)
+            )
             .clip(RoundedCornerShape(28.dp))
-            .background(Color(0xF2F5F5F7))
+            .background(Color(0xCCF5F5F7))
+            .border(
+                width = 0.5.dp,
+                color = Color.White.copy(alpha = 0.35f),
+                shape = RoundedCornerShape(28.dp)
+            )
             .padding(horizontal = 24.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(20.dp),
         verticalAlignment = Alignment.CenterVertically
