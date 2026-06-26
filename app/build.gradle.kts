@@ -2,8 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    
- id("kotlin-kapt")
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -23,10 +22,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
-    kotlinOptions {
-        jvmTarget = "11"
-    }
-
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -40,7 +35,6 @@ android {
     buildFeatures {
         compose = true
     }
- id("kotlin-kapt")
 }
 
 // Skip AAR metadata check (android-37 SDK not yet available on CI runners)
@@ -48,7 +42,6 @@ tasks.configureEach {
     if (name.contains("AarMetadata")) {
         enabled = false
     }
- id("kotlin-kapt")
 }
 
 dependencies {
@@ -73,5 +66,4 @@ dependencies {
     implementation(libs.miuix)
 
     debugImplementation(libs.androidx.ui.tooling)
- id("kotlin-kapt")
 }
