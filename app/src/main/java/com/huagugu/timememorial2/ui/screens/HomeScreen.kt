@@ -2,14 +2,18 @@ package com.huagugu.timememorial2.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -44,6 +48,7 @@ fun HomeScreen(viewModel: MemorialViewModel, onAddClick: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .windowInsetsPadding(WindowInsets.statusBars)
             .padding(top = 12.dp)
     ) {
         // Header
@@ -54,7 +59,7 @@ fun HomeScreen(viewModel: MemorialViewModel, onAddClick: () -> Unit) {
             modifier = Modifier.padding(start = 22.dp, bottom = 16.dp)
         )
 
-        // Stats row - exactly 2 cards like preview
+        // Stats row
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -66,7 +71,7 @@ fun HomeScreen(viewModel: MemorialViewModel, onAddClick: () -> Unit) {
             StatCard("即将到来", "$upcomingCount", Modifier.weight(1f))
         }
 
-        // Category chips - "全部" first, then categories
+        // Category chips
         LazyRow(
             modifier = Modifier.padding(bottom = 16.dp),
             contentPadding = PaddingValues(horizontal = 22.dp),
@@ -89,7 +94,7 @@ fun HomeScreen(viewModel: MemorialViewModel, onAddClick: () -> Unit) {
             }
         }
 
-        // Memorial list inside a card container
+        // Memorial list
         LazyColumn(
             modifier = Modifier
                 .padding(horizontal = 22.dp)
@@ -102,9 +107,8 @@ fun HomeScreen(viewModel: MemorialViewModel, onAddClick: () -> Unit) {
                     memorial = memorial,
                     onClick = { /* TODO: edit/delete */ }
                 )
-                // Divider between items (not after last)
                 if (memorial != memorials.last()) {
-                    androidx.compose.foundation.layout.Box(
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(0.5.dp)
