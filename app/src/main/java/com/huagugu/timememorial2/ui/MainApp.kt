@@ -16,10 +16,10 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,29 +41,20 @@ import com.huagugu.timememorial2.ui.theme.OnSurfaceVariant
 import com.huagugu.timememorial2.viewmodel.MemorialViewModel
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.blur.blur
-import top.yukonga.miuix.kmp.blur.drawBackdrop
-import top.yukonga.miuix.kmp.blur.layerBackdrop
-import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
 
 @Composable
 fun MainApp(viewModel: MemorialViewModel = viewModel()) {
     var currentTab by remember { mutableIntStateOf(0) }
     var showAddSheet by remember { mutableStateOf(false) }
 
-    val backdrop = rememberLayerBackdrop()
-
     Box(modifier = Modifier.fillMaxSize().background(Color(0xFFF7F7F7))) {
-        // Content container — captures rendered output for backdrop blur
-        Box(modifier = Modifier.fillMaxSize().layerBackdrop(backdrop)) {
-            when (currentTab) {
-                0 -> HomeScreen(viewModel = viewModel, onAddClick = { showAddSheet = true })
-                1 -> CalendarScreen(viewModel = viewModel)
-                2 -> SettingsScreen()
-            }
+        when (currentTab) {
+            0 -> HomeScreen(viewModel = viewModel, onAddClick = { showAddSheet = true })
+            1 -> CalendarScreen(viewModel = viewModel)
+            2 -> SettingsScreen()
         }
 
-        // FAB - bottom right
+        // FAB
         Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
@@ -77,17 +68,9 @@ fun MainApp(viewModel: MemorialViewModel = viewModel()) {
             Text("+", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = FabOn)
         }
 
-        // Floating bottom navigation bar with MIUIX backdrop blur
+        // Bottom nav - semi-transparent
         FloatingNavBar(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .drawBackdrop(
-                    backdrop = backdrop,
-                    shape = { RoundedCornerShape(28.dp) },
-                    effects = {
-                        blur(40f)
-                    }
-                ),
+            modifier = Modifier.align(Alignment.BottomCenter),
             currentTab = currentTab,
             onTabClick = { currentTab = it }
         )
@@ -113,33 +96,35 @@ private fun FloatingNavBar(
         NavItem(Icons.Default.Settings, 2)
     )
 
-    Row(
-        modifier = modifier
-            .navigationBarsPadding()
-            .padding(bottom = 16.dp)
-            .clip(RoundedCornerShape(28.dp))
-            .padding(horizontal = 24.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(20.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        items.forEach { item ->
-            val isSelected = currentTab == item.index
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) { onTabClick(item.index) },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = item.icon,
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp),
-                    tint = if (isSelected) OnBackground else OnSurfaceVariant.copy(alpha = 0.4f)
-                )
+    Box(modifier = modifier.padding(bottom = 16.dp)) {
+        Row(
+            modifier = Modifier
+                .navigationBarsPadding()
+                .clip(RoundedCornerShape(28.dp))
+                .background(Color(0xE6F5F5F5))
+                .padding(horizontal = 24.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            items.forEach { item ->
+                val isSelected = currentTab == item.index
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) { onTabClick(item.index) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = item.icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                        tint = if (isSelected) OnBackground else OnSurfaceVariant.copy(alpha = 0.4f)
+                    )
+                }
             }
         }
     }
