@@ -18,12 +18,11 @@ class SmsPickupReceiver : BroadcastReceiver() {
 
         val messages = Telephony.Sms.Intents.getMessagesFromIntent(intent)
 
-        // 按号码分组（短信可能分多条）
         val grouped = messages
             .filter { it.displayOriginatingAddress != null }
             .groupBy { it.displayOriginatingAddress }
             .mapValues { (_, parts) ->
-                parts.sortedBy { it.messageSegmentSeq }
+                parts.sortedBy { it.timestampMillis }
                     .joinToString("") { it.messageBody ?: "" }
             }
 

@@ -235,11 +235,10 @@ fun AddMemorialSheet(
                         set(Calendar.MILLISECOND, 0)
                     }
                     viewModel.addMemorial(
-                        Memorial(
-                            title = title.ifBlank { "未命名纪念日" },
-                            date = selectedCal.timeInMillis,
-                            category = category.name
-                        )
+                        title = title.ifBlank { "未命名纪念日" },
+                        date = selectedCal.timeInMillis,
+                        category = category.name,
+                        note = ""
                     )
                     onDismiss()
                 },
