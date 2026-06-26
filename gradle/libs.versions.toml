@@ -27,7 +27,6 @@ androidx-room-runtime = { group = "androidx.room", name = "room-runtime", versio
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 miuix = { group = "top.yukonga.miuix.kmp", name = "miuix-ui", version.ref = "miuix" }
-miuix-blur = { group = "top.yukonga.miuix", name = "miuix-blur", version.ref = "miuix" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
