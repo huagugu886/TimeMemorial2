@@ -23,7 +23,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -41,214 +40,310 @@ import com.huagugu.timememorial2.ui.theme.OnBackground
 import com.huagugu.timememorial2.ui.theme.OnSurfaceVariant
 import com.huagugu.timememorial2.ui.theme.SecondaryVariant
 import com.huagugu.timememorial2.ui.theme.SurfaceContainer
-import com.huagugu.timememorial2.viewmodel.MemorialViewModel
-import top.yukonga.miuix.kmp.basic.Button
-import top.yukonga.miuix.kmp.basic.NumberPicker
 import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.basic.TextField
-import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.extra.SuperDialog
 import java.util.Calendar
 
-private fun categoryColor(name: String): Color = when (name) {
-    "LOVE" -> CategoryLove
-    "WORK" -> CategoryWork
-    "LIFE" -> CategoryLife
-    "STUDY" -> CategoryStudy
-    "FESTIVAL" -> CategoryFestival
-    else -> Color.Gray
+private val categoryColors = mapOf(
+    Category.LOVE to CategoryLove,
+    Category.WORK to CategoryWork,
+    Category.LIFE to CategoryLife,
+    Category.STUDY to CategoryStudy,
+    Category.FESTIVAL to CategoryFestival
+)
+
+/**
+ * 获取指定年月的最大天数
+ */
+private fun getMaxDay(year: Int, month: Int): Int {
+    val cal = Calendar.getInstance()
+    cal.set(year, month - 1, 1)
+    return cal.getActualMaximum(Calendar.DAY_OF_MONTH)
 }
 
 @Composable
 fun AddMemorialSheet(
-    viewModel: MemorialViewModel,
+    onSave: (title: String, date: Long, category: String, note: String) -> Unit,
+    editMemorial: Memorial? = null,
     onDismiss: () -> Unit
 ) {
-    var title by remember { mutableStateOf("") }
-    var category by remember { mutableStateOf(Category.LOVE) }
+    val isEdit = editMemorial != null
+    var title by remember(editMemorial) { mutableStateOf(editMemorial?.title ?: "") }
+    var note by remember(editMemorial) { mutableStateOf(editMemorial?.note ?: "") }
 
-    val cal = remember { Calendar.getInstance() }
-    var year by remember { mutableIntStateOf(cal.get(Calendar.YEAR)) }
-    var month by remember { mutableIntStateOf(cal.get(Calendar.MONTH) + 1) }
-    var day by remember { mutableIntStateOf(cal.get(Calendar.DAY_OF_MONTH)) }
+    // 解析初始日期
+    val initCal = remember(editMemorial) {
+        Calendar.getInstance().apply {
+            editMemorial?.let { timeInMillis = it.date }
+        }
+    }
+    var year by remember(editMemorial) { mutableIntStateOf(initCal.get(Calendar.YEAR)) }
+    var month by remember(editMemorial) { mutableIntStateOf(initCal.get(Calendar.MONTH) + 1) }
+    var day by remember(editMemorial) { mutableIntStateOf(initCal.get(Calendar.DAY_OF_MONTH)) }
+    val initialCategory = remember(editMemorial) {
+        Category.entries.find { it.name == editMemorial?.category } ?: Category.LIFE
+    }
+    var selectedCategory by remember(editMemorial) { mutableStateOf(initialCategory) }
+    var selectedTab by remember(editMemorial) { mutableIntStateOf(Category.entries.indexOf(initialCategory)) }
+    var showEmptyDialog by remember { mutableStateOf(false) }
 
-    // Dim background + bottom sheet
-    Box(
+    // 根据当前年月计算合法天数范围
+    val maxDay = remember(year, month) { getMaxDay(year, month) }
+    // 如果当前 day 超过 maxDay，自动修正
+    LaunchedEffect(maxDay) {
+        if (day > maxDay) day = maxDay
+    }
+
+    // 年/月变化时，如果 day 超出范围则自动修正
+    fun clampDay() {
+        val max = getMaxDay(year, month)
+        if (day > max) day = max
+    }
+
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0x66000000))
-            .clickable(
-                indication = null,
-                interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-            ) { onDismiss() },
-        contentAlignment = Alignment.BottomCenter
+            .background(Background)
+            .navigationBarsPadding()
+            .padding(horizontal = 22.dp, vertical = 24.dp)
     ) {
-        Column(
+        // Title
+        Text(
+            text = if (isEdit) "编辑纪念日" else "新建纪念日",
+            fontSize = 34.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 24.dp)
+        )
+
+        // Date picker
+        Text("选择日期", fontSize = 13.sp, color = OnSurfaceVariant)
+        Spacer(modifier = Modifier.height(6.dp))
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
-                .background(Background)
-                .clickable(
-                    indication = null,
-                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-                ) { /* consume click */ }
-                .navigationBarsPadding()
-                .padding(horizontal = 28.dp)
-                .padding(top = 24.dp, bottom = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .clip(RoundedCornerShape(14.dp))
+                .background(SurfaceContainer)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Handle bar
-            Box(
-                modifier = Modifier
-                    .width(36.dp)
-                    .height(4.dp)
-                    .clip(RoundedCornerShape(2.dp))
-                    .background(OnSurfaceVariant.copy(alpha = 0.3f))
-            )
-
+            // Year
             Text(
-                text = "添加纪念日",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(top = 20.dp, bottom = 20.dp)
+                text = "◀",
+                color = OnSurfaceVariant,
+                modifier = Modifier.clickable {
+                    year--
+                    clampDay()
+                }.padding(horizontal = 4.dp)
+            )
+            Text(
+                text = "$year 年",
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(horizontal = 4.dp)
+            )
+            Text(
+                text = "▶",
+                color = OnSurfaceVariant,
+                modifier = Modifier.clickable {
+                    year++
+                    clampDay()
+                }.padding(horizontal = 4.dp)
             )
 
-            // Title input
-            TextField(
+            Spacer(modifier = Modifier.width(12.dp))
+
+            // Month
+            Text(
+                text = "◀",
+                color = OnSurfaceVariant,
+                modifier = Modifier.clickable {
+                    if (month == 1) { month = 12; year-- } else month--
+                    clampDay()
+                }.padding(horizontal = 4.dp)
+            )
+            Text(
+                text = String.format("%02d 月", month),
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(horizontal = 4.dp)
+            )
+            Text(
+                text = "▶",
+                color = OnSurfaceVariant,
+                modifier = Modifier.clickable {
+                    if (month == 12) { month = 1; year++ } else month++
+                    clampDay()
+                }.padding(horizontal = 4.dp)
+            )
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            // Day
+            Text(
+                text = "◀",
+                color = OnSurfaceVariant,
+                modifier = Modifier.clickable {
+                    if (day > 1) day--
+                }.padding(horizontal = 4.dp)
+            )
+            Text(
+                text = String.format("%02d 日", day),
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(horizontal = 4.dp)
+            )
+            Text(
+                text = "▶",
+                color = OnSurfaceVariant,
+                modifier = Modifier.clickable {
+                    if (day < maxDay) day++
+                }.padding(horizontal = 4.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // Title input
+        Text("标题", fontSize = 13.sp, color = OnSurfaceVariant)
+        Spacer(modifier = Modifier.height(6.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .background(SurfaceContainer)
+                .padding(horizontal = 16.dp, vertical = 14.dp)
+        ) {
+            if (title.isEmpty()) {
+                Text("例如：结婚纪念日", color = Disabled, fontSize = 15.sp)
+            }
+            androidx.compose.foundation.text.BasicTextField(
                 value = title,
                 onValueChange = { title = it },
+                textStyle = androidx.compose.ui.text.TextStyle(
+                    fontSize = 15.sp,
+                    color = OnBackground
+                ),
                 modifier = Modifier.fillMaxWidth(),
-                label = "纪念日名称",
                 singleLine = true
             )
+        }
 
-            Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-            // Category selector
-            Text(
-                text = "分类",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp),
-                textAlign = TextAlign.Start,
-                color = OnSurfaceVariant
-            )
+        // Category
+        Text("分类", fontSize = 13.sp, color = OnSurfaceVariant)
+        Spacer(modifier = Modifier.height(6.dp))
+        androidx.compose.material3.ScrollableTabRow(
+            selectedTabIndex = selectedTab,
+            containerColor = SurfaceContainer,
+            contentColor = OnBackground,
+            edgePadding = 0.dp,
+            divider = {},
+            indicator = {},
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+        ) {
+            Category.entries.forEachIndexed { index, cat ->
+                val color = categoryColors[cat] ?: OnSurfaceVariant
+                val isSelected = selectedTab == index
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 4.dp, vertical = 8.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(if (isSelected) color.copy(alpha = 0.12f) else OnSurfaceVariant.copy(alpha = 0.06f))
+                        .clickable {
+                            selectedTab = index
+                            selectedCategory = cat
+                        }
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = cat.label,
+                        fontSize = 14.sp,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                        color = if (isSelected) color else OnSurfaceVariant
+                    )
+                }
+            }
+        }
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // Note input
+        Text("备注", fontSize = 13.sp, color = OnSurfaceVariant)
+        Spacer(modifier = Modifier.height(6.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(80.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(SurfaceContainer)
+                .padding(horizontal = 16.dp, vertical = 14.dp)
+        ) {
+            if (note.isEmpty()) {
+                Text("可选备注信息", color = Disabled, fontSize = 15.sp)
+            }
+            androidx.compose.foundation.text.BasicTextField(
+                value = note,
+                onValueChange = { note = it },
+                textStyle = androidx.compose.ui.text.TextStyle(
+                    fontSize = 15.sp,
+                    color = OnBackground
+                ),
                 modifier = Modifier.fillMaxWidth()
-            ) {
-                Category.entries.forEach { cat ->
-                    val isSelected = category == cat
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(24.dp))
-                            .background(
-                                if (isSelected) categoryColor(cat.name)
-                                else SurfaceContainer
-                            )
-                            .clickable { category = cat }
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = when (cat) {
-                                Category.LOVE -> "爱情"
-                                Category.WORK -> "工作"
-                                Category.LIFE -> "生活"
-                                Category.STUDY -> "学习"
-                                Category.FESTIVAL -> "节日"
-                            },
-                            fontSize = 14.sp,
-                            color = if (isSelected) Color.White else OnBackground,
-                            fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Date picker - MIUIX NumberPicker × 3
-            Text(
-                text = "选择日期",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 12.dp),
-                textAlign = TextAlign.Start,
-                color = OnSurfaceVariant
             )
+        }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Year
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    NumberPicker(
-                        value = year,
-                        onValueChange = { year = it },
-                        range = 1900..2100,
-                        label = { "${it}年" },
-                        visibleItemCount = 5
-                    )
-                }
+        Spacer(modifier = Modifier.weight(1f))
 
-                Spacer(modifier = Modifier.width(12.dp))
-
-                // Month
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    NumberPicker(
-                        value = month,
-                        onValueChange = { month = it },
-                        range = 1..12,
-                        label = { "${it}月" },
-                        visibleItemCount = 5
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                // Day
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    NumberPicker(
-                        value = day,
-                        onValueChange = { day = it },
-                        range = 1..31,
-                        label = { "${it}日" },
-                        visibleItemCount = 5
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Save button
-            Button(
-                onClick = {
-                    val selectedCal = Calendar.getInstance().apply {
-                        set(year, month - 1, day, 0, 0, 0)
-                        set(Calendar.MILLISECOND, 0)
+        // Save
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(SecondaryVariant)
+                .clickable {
+                    if (title.isBlank()) {
+                        showEmptyDialog = true
+                    } else {
+                        val cal = Calendar.getInstance()
+                        cal.set(year, month - 1, day, 0, 0, 0)
+                        cal.set(Calendar.MILLISECOND, 0)
+                        onSave(title.trim(), cal.timeInMillis, selectedCategory.name, note.trim())
                     }
-                    viewModel.addMemorial(
-                        title = title.ifBlank { "未命名纪念日" },
-                        date = selectedCal.timeInMillis,
-                        category = category.name,
-                        note = ""
-                    )
-                    onDismiss()
                 },
-                modifier = Modifier.fillMaxWidth()
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = if (isEdit) "保存修改" else "保存纪念日",
+                color = androidx.compose.ui.graphics.Color.White,
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp
+            )
+        }
+    }
+
+    if (showEmptyDialog) {
+        SuperDialog(
+            title = "请输入标题",
+            summary = "纪念日标题不能为空哦~",
+            show = showEmptyDialog,
+            modify = { showEmptyDialog = false }
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(46.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(SecondaryVariant)
+                    .clickable { showEmptyDialog = false },
+                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "保存",
-                    fontSize = 16.sp,
-                    modifier = Modifier.padding(vertical = 4.dp)
-                )
+                Text("确定", color = androidx.compose.ui.graphics.Color.White, fontWeight = FontWeight.Bold)
             }
         }
     }

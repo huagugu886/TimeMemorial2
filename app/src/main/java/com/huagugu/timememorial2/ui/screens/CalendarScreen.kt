@@ -37,6 +37,7 @@ import com.huagugu.timememorial2.ui.theme.CategoryStudy
 import com.huagugu.timememorial2.ui.theme.CategoryWork
 import com.huagugu.timememorial2.ui.theme.OnBackground
 import com.huagugu.timememorial2.ui.theme.OnSurfaceVariant
+import com.huagugu.timememorial2.ui.theme.SurfaceContainer
 import com.huagugu.timememorial2.ui.theme.SecondaryVariant
 import com.huagugu.timememorial2.viewmodel.MemorialViewModel
 import top.yukonga.miuix.kmp.basic.Text
@@ -259,5 +260,3 @@ fun CalendarScreen(viewModel: MemorialViewModel) {
     }
 }
 
-// Re-import needed for SurfaceContainer
-private val SurfaceContainer = com.huagugu.timememorial2.ui.theme.SurfaceContainer

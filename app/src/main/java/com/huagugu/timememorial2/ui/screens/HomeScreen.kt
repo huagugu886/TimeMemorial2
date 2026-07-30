@@ -27,7 +27,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.huagugu.timememorial2.data.Category
-import com.huagugu.timememorial2.ui.components.CategoryChip
 import com.huagugu.timememorial2.ui.components.CategoryChipFromEnum
 import com.huagugu.timememorial2.ui.components.MemorialCard
 import com.huagugu.timememorial2.ui.theme.OnBackground
@@ -37,13 +36,14 @@ import com.huagugu.timememorial2.viewmodel.MemorialViewModel
 import top.yukonga.miuix.kmp.basic.Text
 
 @Composable
-fun HomeScreen(viewModel: MemorialViewModel, onAddClick: () -> Unit) {
+fun HomeScreen(
+    viewModel: MemorialViewModel,
+    onAddClick: () -> Unit,
+    onEditMemorial: (com.huagugu.timememorial2.data.Memorial) -> Unit,
+    onDeleteMemorial: (com.huagugu.timememorial2.data.Memorial) -> Unit
+) {
     val memorials by viewModel.filteredMemorials.collectAsState()
     val selectedCategory by viewModel.selectedCategory.collectAsState()
-    val totalCount = memorials.size
-
-    val now = System.currentTimeMillis()
-    val upcomingCount = memorials.count { it.date > now }
 
     Column(
         modifier = Modifier
@@ -51,85 +51,68 @@ fun HomeScreen(viewModel: MemorialViewModel, onAddClick: () -> Unit) {
             .windowInsetsPadding(WindowInsets.statusBars)
             .padding(top = 12.dp)
     ) {
-        // Header
         Text(
             text = "纪念日",
             fontSize = 34.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(start = 22.dp, bottom = 16.dp)
+            modifier = Modifier.padding(start = 22.dp, bottom = 24.dp)
         )
 
-        // Stats row
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 22.dp)
-                .padding(bottom = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            StatCard("全部纪念日", "$totalCount", Modifier.weight(1f))
-            StatCard("即将到来", "$upcomingCount", Modifier.weight(1f))
-        }
-
-        // Category chips
+        // Filter chips
         LazyRow(
-            modifier = Modifier.padding(bottom = 16.dp),
-            contentPadding = PaddingValues(horizontal = 22.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             item {
-                CategoryChip(
+                CategoryChipFromEnum(
                     label = "全部",
                     selected = selectedCategory == null,
-                    activeColor = OnBackground,
+                    color = OnBackground,
                     onClick = { viewModel.setCategory(null) }
                 )
             }
             items(Category.entries.toList()) { cat ->
                 CategoryChipFromEnum(
-                    category = cat,
+                    label = cat.label,
                     selected = selectedCategory == cat.name,
+                    color = com.huagugu.timememorial2.ui.theme.CategoryFestival,
                     onClick = { viewModel.setCategory(cat.name) }
                 )
             }
         }
 
-        // Memorial list
-        LazyColumn(
-            modifier = Modifier
-                .padding(horizontal = 22.dp)
-                .clip(RoundedCornerShape(20.dp))
-                .background(SurfaceContainer),
-            contentPadding = PaddingValues(bottom = 120.dp)
-        ) {
-            items(memorials, key = { it.id }) { memorial ->
-                MemorialCard(
-                    memorial = memorial,
-                    onClick = { /* TODO: edit/delete */ }
+        Spacer(modifier = Modifier.height(12.dp))
+
+        if (memorials.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(32.dp)
+            ) {
+                Text(
+                    text = "还没有纪念日，点击 + 添加",
+                    color = OnSurfaceVariant,
+                    fontSize = 14.sp
                 )
-                if (memorial != memorials.last()) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(0.5.dp)
-                            .padding(horizontal = 18.dp)
-                            .background(com.huagugu.timememorial2.ui.theme.DividerLine)
+            }
+        } else {
+            LazyColumn(
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                items(
+                    items = memorials,
+                    key = { it.id }
+                ) { memorial ->
+                    MemorialCard(
+                        memorial = memorial,
+                        onClick = {},
+                        onEdit = { onEditMemorial(memorial) },
+                        onDelete = { onDeleteMemorial(memorial) },
+                        modifier = Modifier.animateItem()
                     )
                 }
             }
         }
-    }
-}
-
-@Composable
-fun StatCard(label: String, value: String, modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(20.dp))
-            .background(SurfaceContainer)
-            .padding(16.dp)
-    ) {
-        Text(text = label, fontSize = 12.sp, color = OnSurfaceVariant, fontWeight = FontWeight.Medium)
-        Text(text = value, fontSize = 26.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp))
     }
 }
