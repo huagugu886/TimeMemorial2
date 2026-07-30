@@ -13,15 +13,26 @@ import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.toArgb
 import org.intellij.lang.annotations.Language
 
+/** Cross-platform interface for setting uniforms on a runtime shader. */
+interface RuntimeShader {
+    fun setFloatUniform(name: String, value: Float)
+    fun setFloatUniform(name: String, value1: Float, value2: Float)
+    fun setFloatUniform(name: String, value1: Float, value2: Float, value3: Float)
+    fun setFloatUniform(name: String, value1: Float, value2: Float, value3: Float, value4: Float)
+    fun setFloatUniform(name: String, values: FloatArray)
+    fun setIntUniform(name: String, value: Int)
+    fun setIntUniform(name: String, value1: Int, value2: Int)
+    fun setIntUniform(name: String, value1: Int, value2: Int, value3: Int)
+    fun setIntUniform(name: String, value1: Int, value2: Int, value3: Int, value4: Int)
+    fun setIntUniform(name: String, values: IntArray)
+    fun setColorUniform(name: String, color: Color)
+    fun setInputShader(name: String, shader: Shader)
+}
+
 @SuppressLint("ObsoleteSdkInt")
 @ChecksSdkIntAtLeast(Build.VERSION_CODES.TIRAMISU)
 fun isRuntimeShaderSupported(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
 
-/**
- * Creates a platform-specific [RuntimeShader] from an AGSL/SkSL shader string.
- *
- * @param shaderString The AGSL shader source to compile.
- */
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 fun RuntimeShader(@Language("AGSL") shaderString: String): RuntimeShader = AndroidRuntimeShader(android.graphics.RuntimeShader(shaderString))
 
@@ -30,7 +41,6 @@ fun RuntimeShader.asComposeShader(): Shader = asAndroidRuntimeShader()
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 fun RuntimeShader.asBrush(): ShaderBrush = (this as AndroidRuntimeShader).brush
 
-/** Returns the underlying [android.graphics.RuntimeShader] for interop with native render-effect APIs. */
 fun RuntimeShader.asAndroidRuntimeShader(): android.graphics.RuntimeShader = (this as AndroidRuntimeShader).shader
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
